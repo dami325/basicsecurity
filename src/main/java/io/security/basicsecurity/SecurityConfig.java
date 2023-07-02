@@ -1,11 +1,13 @@
 package io.security.basicsecurity;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.WebSecurityConfigurer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
@@ -36,12 +38,20 @@ import java.io.IOException;
  * 	   .addLogoutHandler(logoutHandler())		 // 로그아웃 핸들러
  *     .logoutSuccessHandler(logoutSuccessHandler()) 	// 로그아웃 성공 후 핸들러
  *
+ *
+ * http.rememberMe()
+ * 		.rememberMeParameter(“remember”) // 기본 파라미터명은 remember-me
+ * 		.tokenValiditySeconds(3600) // Default 는 14일
+ * 		.alwaysRemember(true) // 리멤버 미 기능이 활성화되지 않아도 항상 실행
+ * 		.userDetailsService(userDetailsService)
  */
 
 @Configuration
 @EnableWebSecurity// 웹보안 활성화 시 명시 필수
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
+    @Autowired
+    UserDetailsService userDetailsService;
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
@@ -85,6 +95,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     }
                 }) // 핸들러는 다양한 로직을 더 많이 구현할 수 있음
                 .deleteCookies("remember-me") // 삭제하고싶은 쿠키명
+        ;
+
+        http
+                .rememberMe()
+                .rememberMeParameter("remember") //기본값은 remember-me
+                .tokenValiditySeconds(3600) //기본은 14일
+                .userDetailsService(userDetailsService)
         ;
     }
 }
