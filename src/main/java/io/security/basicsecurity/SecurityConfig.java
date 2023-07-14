@@ -19,31 +19,37 @@ import javax.servlet.http.HttpSession;
 import java.io.IOException;
 
 /**
- *
  * 폼 로그인 방식
  * http.formLogin()
- *     .loginPage(“/login.html")   				// 사용자 정의 로그인 페이지
- *     .defaultSuccessUrl("/home)				// 로그인 성공 후 이동 페이지
- * 	    .failureUrl(＂/login.html?error=true“)		// 로그인 실패 후 이동 페이지
- *     .usernameParameter("username")			// 아이디 파라미터명 설정
- *     .passwordParameter(“password”)			// 패스워드 파라미터명 설정
- *     .loginProcessingUrl(“/login")			// 로그인 Form Action Url
- *     .successHandler(loginSuccessHandler())		// 로그인 성공 후 핸들러
- *     .failureHandler(loginFailureHandler())		// 로그인 실패 후 핸들러
- *
+ * .loginPage(“/login.html")   				// 사용자 정의 로그인 페이지
+ * .defaultSuccessUrl("/home)				// 로그인 성공 후 이동 페이지
+ * .failureUrl(＂/login.html?error=true“)		// 로그인 실패 후 이동 페이지
+ * .usernameParameter("username")			// 아이디 파라미터명 설정
+ * .passwordParameter(“password”)			// 패스워드 파라미터명 설정
+ * .loginProcessingUrl(“/login")			// 로그인 Form Action Url
+ * .successHandler(loginSuccessHandler())		// 로그인 성공 후 핸들러
+ * .failureHandler(loginFailureHandler())		// 로그인 실패 후 핸들러
+ * <p>
  * http.logout() : 로그아웃 기능이 작동함, 로그아웃 처리
- *     .logoutUrl(＂/logout＂)				// 로그아웃 처리 URL default = /logout
- * 	   .logoutSuccessUrl(＂/login＂)			// 로그아웃 성공 후 이동페이지
- *     .deleteCookies(＂JSESSIONID“, ＂remember-me＂) 	// 로그아웃 후 쿠키 삭제
- * 	   .addLogoutHandler(logoutHandler())		 // 로그아웃 핸들러
- *     .logoutSuccessHandler(logoutSuccessHandler()) 	// 로그아웃 성공 후 핸들러
- *
- *
+ * .logoutUrl(＂/logout＂)				// 로그아웃 처리 URL default = /logout
+ * .logoutSuccessUrl(＂/login＂)			// 로그아웃 성공 후 이동페이지
+ * .deleteCookies(＂JSESSIONID“, ＂remember-me＂) 	// 로그아웃 후 쿠키 삭제
+ * .addLogoutHandler(logoutHandler())		 // 로그아웃 핸들러
+ * .logoutSuccessHandler(logoutSuccessHandler()) 	// 로그아웃 성공 후 핸들러
+ * <p>
+ * <p>
  * http.rememberMe()
- * 		.rememberMeParameter(“remember”) // 기본 파라미터명은 remember-me
- * 		.tokenValiditySeconds(3600) // Default 는 14일
- * 		.alwaysRemember(true) // 리멤버 미 기능이 활성화되지 않아도 항상 실행
- * 		.userDetailsService(userDetailsService)
+ * .rememberMeParameter(“remember”)        // 기본 파라미터명은 remember-me
+ * .tokenValiditySeconds(3600)             // Default 는 14일
+ * .alwaysRemember(true)                   // 리멤버 미 기능이 활성화되지 않아도 항상 실행
+ * .userDetailsService(userDetailsService)
+ * <p>
+ * <p>
+ * http.sessionManagement()
+ * .maximumSessions(1)                    // 최대 허용 가능 세션 수 , -1 : 무제한 로그인 세션 허용
+ * .maxSessionsPreventsLogin(true)        // true : 동시 로그인 차단함(이미 로그인 중인 계정이라면, 지금 로그인 하는 사람 차단),  false : 기존 세션 만료(default)
+ * .invalidSessionUrl("/invalid")         // 세션이 유효하지 않을 때 이동 할 페이지
+ * .expiredUrl("/expired ")  	             // 세션이 만료된 경우 이동 할 페이지
  */
 
 @Configuration
@@ -102,6 +108,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .rememberMeParameter("remember") //기본값은 remember-me
                 .tokenValiditySeconds(3600) //기본은 14일
                 .userDetailsService(userDetailsService)
+        ;
+
+        //동시 세션 제어
+        http
+                .sessionManagement()
+                .maximumSessions(1)
+                .maxSessionsPreventsLogin(false) // default = false
         ;
     }
 }
