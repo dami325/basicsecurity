@@ -114,12 +114,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http
                 .sessionManagement()
                 .maximumSessions(1)
-                .maxSessionsPreventsLogin(false) // default = false
+                .maxSessionsPreventsLogin(false) // default = false// 현재 인증하고있는 사용자 인증 실패 하게 하는 전략 = true
         ;
 
         // 세션 고정 보호
-        http.sessionManagement()
-                .sessionFixation().changeSessionId();// 설정안해도 기본으로 해줌 default
+//        http.sessionManagement()
+//                .sessionFixation().changeSessionId();// 설정안해도 기본으로 해줌 default
+
 
     }
 }
