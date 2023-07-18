@@ -12,6 +12,9 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
+import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
+import org.springframework.security.web.savedrequest.RequestCache;
+import org.springframework.security.web.savedrequest.SavedRequest;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -30,27 +33,30 @@ import java.io.IOException;
  * .loginProcessingUrl(“/login")			// 로그인 Form Action Url
  * .successHandler(loginSuccessHandler())		// 로그인 성공 후 핸들러
  * .failureHandler(loginFailureHandler())		// 로그인 실패 후 핸들러
- * <p>
+ *
+ *
  * http.logout() : 로그아웃 기능이 작동함, 로그아웃 처리
  * .logoutUrl(＂/logout＂)				// 로그아웃 처리 URL default = /logout
  * .logoutSuccessUrl(＂/login＂)			// 로그아웃 성공 후 이동페이지
  * .deleteCookies(＂JSESSIONID“, ＂remember-me＂) 	// 로그아웃 후 쿠키 삭제
  * .addLogoutHandler(logoutHandler())		 // 로그아웃 핸들러
  * .logoutSuccessHandler(logoutSuccessHandler()) 	// 로그아웃 성공 후 핸들러
- * <p>
- * <p>
+ *
  * http.rememberMe()
  * .rememberMeParameter(“remember”)        // 기본 파라미터명은 remember-me
  * .tokenValiditySeconds(3600)             // Default 는 14일
  * .alwaysRemember(true)                   // 리멤버 미 기능이 활성화되지 않아도 항상 실행
  * .userDetailsService(userDetailsService)
- * <p>
- * <p>
+ *
  * http.sessionManagement()
  * .maximumSessions(1)                    // 최대 허용 가능 세션 수 , -1 : 무제한 로그인 세션 허용
  * .maxSessionsPreventsLogin(true)        // true : 동시 로그인 차단함(이미 로그인 중인 계정이라면, 지금 로그인 하는 사람 차단),  false : 기존 세션 만료(default)
  * .invalidSessionUrl("/invalid")         // 세션이 유효하지 않을 때 이동 할 페이지
  * .expiredUrl("/expired ")  	             // 세션이 만료된 경우 이동 할 페이지
+ *
+ *      http.exceptionHandling()
+ * 		.authenticationEntryPoint(authenticationEntryPoint())    // 인증실패 시 처리  - 인증예외
+ * 		.accessDeniedHandler(accessDeniedHandler()) 			 // 인증실패 시 처리 - 인가예외
  */
 
 @Configuration
@@ -71,6 +77,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http
                 .authorizeRequests()
+                .antMatchers("/login").permitAll() // 이 설정을 안해주면 아래의  .anyRequest().authenticated() 설정에 의해 페이지 접근이 안됨
                 .antMatchers("/user").hasRole("USER")
                 .antMatchers("/admin/pay").hasRole("ADMIN") /** 넓은것보다 구체적인 범위를 항상 먼저 써야 먼저 인가처리가 된다.!!**/
                 .antMatchers("/admin/**").access("hasRole('ADMIN') or hasRole('SYS')")
@@ -92,6 +99,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 //                    response.sendRedirect("/login");
 //                })
 //                .permitAll()
+                .successHandler((request, response, authentication) -> {
+                    RequestCache requestCache = new HttpSessionRequestCache();
+                    SavedRequest savedRequest = requestCache.getRequest(request, response); // 원래 사용자가 가고자 했던 정보가 저장되어 있음
+                    String redirectUrl = savedRequest.getRedirectUrl();// 원래 가고자했던 url
+                    response.sendRedirect(redirectUrl);//원래 가고자 했던 url로 보내준다
+                })
         ;// 인증 정책
 
         http
@@ -132,6 +145,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 //        http.sessionManagement()
 //                .sessionFixation().changeSessionId();// 설정안해도 기본으로 해줌 default
 
-
+        // 인증 인가 예외
+        http
+                .exceptionHandling()
+//                .authenticationEntryPoint((request, response, authException) -> response.sendRedirect("/login")) // 직접 적으면 우리가 만든 페이지로 이동함
+                .accessDeniedHandler((request, response, accessDeniedException) -> response.sendRedirect("/denied"))
+                ;
     }
 }
